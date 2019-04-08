@@ -74,8 +74,13 @@ under the License.
 		<generated.docs.dir>./docs/_includes/generated</generated.docs.dir>
 	</properties>
 
-	<dependencies>
 
+	<dependencies>
+		<dependency>
+			<groupId>com.ximalaya</groupId>
+			<artifactId>flink-dsl-stream-udf</artifactId>
+			<version>1.0</version>
+		</dependency>
 		<!-- core dependencies -->
 
 		<dependency>
