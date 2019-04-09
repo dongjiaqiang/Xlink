@@ -18,8 +18,13 @@ under the License.
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
+	<parent>
+		<groupId>com.ximalaya</groupId>
+		<artifactId>xlink-1.6.2</artifactId>
+		<version>1.0</version>
+	</parent>
+
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.ximalaya</groupId>
 	<artifactId>xlink-table_2.11</artifactId>
 	<version>1.6.2</version>
 	<packaging>jar</packaging>
@@ -78,7 +83,7 @@ under the License.
 	<dependencies>
 		<dependency>
 			<groupId>com.ximalaya</groupId>
-			<artifactId>flink-dsl-stream-udf</artifactId>
+			<artifactId>flink-dsl-stream-api</artifactId>
 			<version>1.0</version>
 		</dependency>
 		<!-- core dependencies -->
@@ -198,7 +203,7 @@ under the License.
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-tests_${scala.binary.version}</artifactId>
 			<version>1.6-SNAPSHOT</version>
-			<!--<type>test-jar</type>-->
+			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 
@@ -394,4 +399,32 @@ under the License.
 			<!--</plugin>-->
 		</plugins>
 	</build>
+	<distributionManagement>
+		<repository>
+			<id>artifactory</id>
+			<name>nali-releases</name>
+			<url>http://artifactory.ximalaya.com/artifactory/ximalaya-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory</id>
+			<name>nali-snapshots</name>
+			<url>http://artifactory.ximalaya.com/artifactory/ximalaya-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>artifactory-central</id>
+			<url>http://artifactory.ximalaya.com/artifactory/repo</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>artifactory-snapshots</id>
+			<url>http://artifactory.ximalaya.com/artifactory/repo</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
 </project>

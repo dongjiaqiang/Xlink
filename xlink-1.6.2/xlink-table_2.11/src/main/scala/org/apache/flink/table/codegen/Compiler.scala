@@ -18,11 +18,11 @@
 
 package org.apache.flink.table.codegen
 
-import com.ximalaya.flink.dsl.stream.udf.classloader.CglibEnhancerClassLoader
 import org.apache.flink.api.common.InvalidProgramException
 import org.codehaus.commons.compiler.CompileException
 import org.codehaus.janino.SimpleCompiler
 import org.apache.flink.configuration.Configuration
+import org.apache.flink.table.xlink.CglibEnhancerClassLoader
 
 trait Compiler[T] {
 
