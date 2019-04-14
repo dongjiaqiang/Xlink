@@ -113,7 +113,7 @@ public abstract class AbstractUdfStreamOperator<OUT, F extends Function>
 		//todo
 		FunctionUtils.openFunction(userFunction,configuration);
 		//old code
-		FunctionUtils.openFunction(userFunction,new Configuration());
+		//FunctionUtils.openFunction(userFunction,new Configuration());
 	}
 
 	@Override
