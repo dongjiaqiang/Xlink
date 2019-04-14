@@ -15,5 +15,6 @@
 
     <modules>
         <module>xlink-table_2.11</module>
+        <module>xlink-streaming-java_2.1.1</module>
     </modules>
 </project>
