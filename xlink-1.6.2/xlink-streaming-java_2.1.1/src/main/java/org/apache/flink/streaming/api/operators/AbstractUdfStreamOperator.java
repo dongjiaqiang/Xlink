@@ -166,7 +166,7 @@ public abstract class AbstractUdfStreamOperator<OUT, F extends Function>
 	 * @return The user function parameters (currently empty)
 	 */
 	public Configuration getUserFunctionParameters() {
-		return new Configuration();
+		return configuration;
 	}
 
 	private void checkUdfCheckpointingPreconditions() {
