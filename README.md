@@ -55,13 +55,13 @@
 <dependency>
             <groupId>com.ximalaya</groupId>
             <artifactId>xlink-streaming-java_2.11</artifactId>
-            <version>1.0</version>
+            <version>1.6.2</version>
 </dependency>
         
  <dependency>
             <groupId>com.ximalaya</groupId>
             <artifactId>xlink-table_2.11</artifactId>
-            <version>1.0</version>
+            <version>1.6.2</version>
 </dependency>        
 ```
 
