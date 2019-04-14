@@ -75,7 +75,7 @@ class TestUdf extends AbstractUserUdf{
 
 //步骤二 生成自定义UDF的ScalarFunction实例
 //参数为 UDF名字 自定义的UDF实现类 自定义UDF添加的方法 返回自定义UDF实例和自定义UDF的class对象的字符串表达式
-val (udf,clazzStr)=UserUdfFactory.createUserUdf("test",
+val (udf,clazzStr,clazzMapInfo)=UserUdfFactory.createUserUdf("test",
       "com.ximalaya.recsys.stream.flink.task.app.TestUdf",
       List(EvalMethod(FieldType.LONG,Array(FieldType.INT))))
 
@@ -83,6 +83,8 @@ val (udf,clazzStr)=UserUdfFactory.createUserUdf("test",
 val config=new Configuration()
 val json=new JSONObject
 json.put(udf.getClass.getName,str)
+clazzInfos.foreach(kv=>json.put(kv._1,kv._2))
+
 config.setString("flink.dsl.stream.dynamic.udfs.info",json.toString)
 environment.getConfig.setGlobalJobParameters(config)
 
