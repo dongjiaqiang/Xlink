@@ -22,6 +22,9 @@ class CglibEnhancerClassLoader(val parent:ClassLoader, val dynamicUDFInfo:String
   }
 
   override def findClass(name: String): Class[_] = {
+    if(name.contains("EnhancerByCGLIB")) {
+      udfInfoMap.keySet.filter(_ != name).foreach(c ⇒ this.loadClass(c))
+    }
     udfInfoMap.get(name).map(value ⇒ {
       val byteValue = Base64.decodeBase64(value)
       ReflectUtils.defineClass(name,byteValue, parent)
