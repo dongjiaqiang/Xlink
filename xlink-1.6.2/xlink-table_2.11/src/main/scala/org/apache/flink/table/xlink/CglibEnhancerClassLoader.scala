@@ -9,7 +9,7 @@ import org.apache.commons.codec.binary.Base64
   * @author martin.dong
   *
   **/
-class CglibEnhancerClassLoader(val parent:ClassLoader, val dynamicUDFInfo:String) extends ClassLoader(parent) {
+class CglibEnhancerClassLoader(val parent:ClassLoader, val dynamicUDFInfo:String) extends ClassLoader(parent){
   require(dynamicUDFInfo != "")
   private val udfInfoMap: Map[String, String] = {
     val jsonObject = JSON.parseObject(dynamicUDFInfo)
@@ -21,13 +21,18 @@ class CglibEnhancerClassLoader(val parent:ClassLoader, val dynamicUDFInfo:String
     }).toMap
   }
 
-  override def findClass(name: String): Class[_] = {
+  override def findClass(className: String): Class[_] = {
+    val name = className.replace("/",".")
     if(name.contains("EnhancerByCGLIB")) {
       udfInfoMap.keySet.filter(_ != name).foreach(c ⇒ this.loadClass(c))
     }
     udfInfoMap.get(name).map(value ⇒ {
       val byteValue = Base64.decodeBase64(value)
-      ReflectUtils.defineClass(name,byteValue, parent)
+      try {
+        ReflectUtils.defineClass(name, byteValue, parent)
+      }catch {
+        case _:Exception⇒parent.loadClass(name)
+      }
     }).orNull
   }
 }
