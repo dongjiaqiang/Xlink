@@ -399,32 +399,4 @@ under the License.
 			<!--</plugin>-->
 		</plugins>
 	</build>
-	<distributionManagement>
-		<repository>
-			<id>artifactory</id>
-			<name>nali-releases</name>
-			<url>http://artifactory.ximalaya.com/artifactory/ximalaya-releases/</url>
-		</repository>
-		<snapshotRepository>
-			<id>artifactory</id>
-			<name>nali-snapshots</name>
-			<url>http://artifactory.ximalaya.com/artifactory/ximalaya-snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
-	<repositories>
-		<repository>
-			<id>artifactory-central</id>
-			<url>http://artifactory.ximalaya.com/artifactory/repo</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>artifactory-snapshots</id>
-			<url>http://artifactory.ximalaya.com/artifactory/repo</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-	</repositories>
 </project>
