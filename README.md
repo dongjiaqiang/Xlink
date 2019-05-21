@@ -1,5 +1,32 @@
 # Xlink
 
+## xlink-yarn_2.11
+
+### 版本
+
+**1.6.2**
+
+## 特性
+
+* **支持动态将位于HDFS上的依赖jar传递到Flink Yarn作业的依赖目录上**
+
+### 源码改动说明**
+
+* [在AbstractYarnClusterDescriptor读取依赖路径并将依赖jar传递到远程Yarn作业目录中](https://github.com/dongjiaqiang/Xlink/blob/master/xlink-1.6.2/xlink-yarn_2.11/src/main/java/org/apache/flink/yarn/AbstractYarnClusterDescriptor.java)
+* [在Utils中实现依赖jar的远程传递](https://github.com/dongjiaqiang/Xlink/blob/master/xlink-1.6.2/xlink-yarn_2.11/src/main/java/org/apache/flink/yarn/Utils.java)
+
+### 参数说明
+
+**为实现动态依赖的加载 需要在Flink Configuration中配置一个参数 指明传递的路径信息**
+
+* **键名为flink.hdfs.extend.lib.path**
+
+* **值为一个逗号分隔的路径列表**
+
+```
+/home/path1,/home/path2
+```
+
 ## xlink-table_2.11
 
 ### 版本
