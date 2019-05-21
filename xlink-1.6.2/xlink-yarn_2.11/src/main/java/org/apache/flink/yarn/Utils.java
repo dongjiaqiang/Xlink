@@ -258,9 +258,9 @@ public final class Utils {
 	 * @return YARN resource
 	 */
 	private static LocalResource registerLocalResource(
-			Path remoteRsrcPath,
-			long resourceSize,
-			long resourceModificationTime) {
+		Path remoteRsrcPath,
+		long resourceSize,
+		long resourceModificationTime) {
 		LocalResource localResource = Records.newRecord(LocalResource.class);
 		localResource.setResource(ConverterUtils.getYarnUrlFromURI(remoteRsrcPath.toUri()));
 		localResource.setSize(resourceSize);
@@ -318,9 +318,9 @@ public final class Utils {
 				// ----
 				// Intended call: HBaseConfiguration.addHbaseResources(conf);
 				Class
-						.forName("org.apache.hadoop.hbase.HBaseConfiguration")
-						.getMethod("addHbaseResources", Configuration.class)
-						.invoke(null, conf);
+					.forName("org.apache.hadoop.hbase.HBaseConfiguration")
+					.getMethod("addHbaseResources", Configuration.class)
+					.invoke(null, conf);
 				// ----
 
 				LOG.info("HBase security setting: {}", conf.get("hbase.security.authentication"));
@@ -334,9 +334,9 @@ public final class Utils {
 				// ----
 				// Intended call: Token<AuthenticationTokenIdentifier> token = TokenUtil.obtainToken(conf);
 				Token<?> token = (Token<?>) Class
-						.forName("org.apache.hadoop.hbase.security.token.TokenUtil")
-						.getMethod("obtainToken", Configuration.class)
-						.invoke(null, conf);
+					.forName("org.apache.hadoop.hbase.security.token.TokenUtil")
+					.getMethod("obtainToken", Configuration.class)
+					.invoke(null, conf);
 				// ----
 
 				if (token == null) {
@@ -347,11 +347,11 @@ public final class Utils {
 				credentials.addToken(token.getService(), token);
 				LOG.info("Added HBase Kerberos security token to credentials.");
 			} catch (ClassNotFoundException
-					| NoSuchMethodException
-					| IllegalAccessException
-					| InvocationTargetException e) {
+				| NoSuchMethodException
+				| IllegalAccessException
+				| InvocationTargetException e) {
 				LOG.info("HBase is not available (not packaged with this application): {} : \"{}\".",
-						e.getClass().getSimpleName(), e.getMessage());
+					e.getClass().getSimpleName(), e.getMessage());
 			}
 		}
 	}
@@ -362,7 +362,7 @@ public final class Utils {
 	 * by https://issues.apache.org/jira/browse/YARN-1931
 	 */
 	public static void addToEnvironment(Map<String, String> environment,
-			String variable, String value) {
+										String variable, String value) {
 		String val = environment.get(variable);
 		if (val == null) {
 			val = value;
@@ -370,7 +370,7 @@ public final class Utils {
 			val = val + File.pathSeparator + value;
 		}
 		environment.put(StringInterner.weakIntern(variable),
-				StringInterner.weakIntern(val));
+			StringInterner.weakIntern(val));
 	}
 
 	/**
@@ -511,7 +511,7 @@ public final class Utils {
 		{
 			// write the TaskManager configuration to a local file
 			final File taskManagerConfigFile =
-					new File(workingDirectory, UUID.randomUUID() + "-taskmanager-conf.yaml");
+				new File(workingDirectory, UUID.randomUUID() + "-taskmanager-conf.yaml");
 			log.debug("Writing TaskManager configuration to {}", taskManagerConfigFile.getAbsolutePath());
 			BootstrapTools.writeConfiguration(taskManagerConfig, taskManagerConfigFile);
 
@@ -570,8 +570,8 @@ public final class Utils {
 		boolean hasLog4j = new File(workingDirectory, "log4j.properties").exists();
 
 		String launchCommand = BootstrapTools.getTaskManagerShellCommand(
-				flinkConfig, tmParams, ".", ApplicationConstants.LOG_DIR_EXPANSION_VAR,
-				hasLogback, hasLog4j, hasKrb5, taskManagerMainClass);
+			flinkConfig, tmParams, ".", ApplicationConstants.LOG_DIR_EXPANSION_VAR,
+			hasLogback, hasLog4j, hasKrb5, taskManagerMainClass);
 
 		if (log.isDebugEnabled()) {
 			log.debug("Starting TaskManagers with command: " + launchCommand);

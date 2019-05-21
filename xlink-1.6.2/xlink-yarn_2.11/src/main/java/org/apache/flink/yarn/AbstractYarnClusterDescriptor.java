@@ -114,6 +114,12 @@ import static org.apache.flink.yarn.cli.FlinkYarnSessionCli.getDynamicProperties
 public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractYarnClusterDescriptor.class);
 
+	/**
+	 * Minimum memory requirements, checked by the Client.
+	 */
+	private static final int MIN_JM_MEMORY = 768; // the minimum memory should be higher than the min heap cutoff
+	private static final int MIN_TM_MEMORY = 768;
+
 	private final YarnConfiguration yarnConfiguration;
 
 	private final YarnClient yarnClient;
@@ -149,11 +155,11 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	private YarnConfigOptions.UserJarInclusion userJarInclusion;
 
 	public AbstractYarnClusterDescriptor(
-			Configuration flinkConfiguration,
-			YarnConfiguration yarnConfiguration,
-			String configurationDirectory,
-			YarnClient yarnClient,
-			boolean sharedYarnClient) {
+		Configuration flinkConfiguration,
+		YarnConfiguration yarnConfiguration,
+		String configurationDirectory,
+		YarnClient yarnClient,
+		boolean sharedYarnClient) {
 
 		this.yarnConfiguration = Preconditions.checkNotNull(yarnConfiguration);
 
@@ -471,11 +477,11 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	 * @param detached True if the cluster should be started in detached mode
 	 */
 	protected ClusterClient<ApplicationId> deployInternal(
-			ClusterSpecification clusterSpecification,
-			String applicationName,
-			String yarnClusterEntrypoint,
-			@Nullable JobGraph jobGraph,
-			boolean detached) throws Exception {
+		ClusterSpecification clusterSpecification,
+		String applicationName,
+		String yarnClusterEntrypoint,
+		@Nullable JobGraph jobGraph,
+		boolean detached) throws Exception {
 
 		// ------------------ Check if configuration is valid --------------------
 		validateClusterSpecification(clusterSpecification);
@@ -552,7 +558,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 			jobGraph,
 			yarnClient,
 			yarnApplication,
-			validClusterSpecification);
+			clusterSpecification);
 
 		String host = report.getHost();
 		int port = report.getRpcPort();
@@ -567,8 +573,8 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		// the Flink cluster is deployed in YARN. Represent cluster
 		return createYarnClusterClient(
 			this,
-			validClusterSpecification.getNumberTaskManagers(),
-			validClusterSpecification.getSlotsPerTaskManager(),
+			clusterSpecification.getNumberTaskManagers(),
+			clusterSpecification.getSlotsPerTaskManager(),
 			report,
 			flinkConfiguration,
 			true);
@@ -583,6 +589,16 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		int taskManagerCount = clusterSpecification.getNumberTaskManagers();
 		int jobManagerMemoryMb = clusterSpecification.getMasterMemoryMB();
 		int taskManagerMemoryMb = clusterSpecification.getTaskManagerMemoryMB();
+
+		if (jobManagerMemoryMb < MIN_JM_MEMORY) {
+			LOG.warn("The minimum JobManager memory is {}. Will set the JobManager memory to this value.", MIN_JM_MEMORY);
+			jobManagerMemoryMb = MIN_JM_MEMORY;
+		}
+
+		if (taskManagerMemoryMb < MIN_TM_MEMORY) {
+			LOG.warn("The minimum TaskManager memory is {}. Will set the Taskmanager memory to this value.", MIN_TM_MEMORY);
+			taskManagerMemoryMb = MIN_TM_MEMORY;
+		}
 
 		if (jobManagerMemoryMb < yarnMinAllocationMB || taskManagerMemoryMb < yarnMinAllocationMB) {
 			LOG.warn("The JobManager or TaskManager memory is below the smallest possible YARN Container size. "
@@ -689,17 +705,14 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		}
 	}
 
-	//flink yarm配置
-	//flink cluster名字
-	//
 	public ApplicationReport startAppMaster(
-			Configuration configuration,
-			String applicationName,
-			String yarnClusterEntrypoint,
-			JobGraph jobGraph,
-			YarnClient yarnClient,
-			YarnClientApplication yarnApplication,
-			ClusterSpecification clusterSpecification) throws Exception {
+		Configuration configuration,
+		String applicationName,
+		String yarnClusterEntrypoint,
+		JobGraph jobGraph,
+		YarnClient yarnClient,
+		YarnClientApplication yarnApplication,
+		ClusterSpecification clusterSpecification) throws Exception {
 
 		// ------------------ Initialize the file systems -------------------------
 
@@ -707,7 +720,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 			org.apache.flink.core.fs.FileSystem.initialize(configuration);
 		} catch (IOException e) {
 			throw new IOException("Error while setting the default " +
-					"filesystem scheme from configuration.", e);
+				"filesystem scheme from configuration.", e);
 		}
 
 		// initialize file system
@@ -718,12 +731,11 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 
 		// hard coded check for the GoogleHDFS client because its not overriding the getScheme() method.
 		if (!fs.getClass().getSimpleName().equals("GoogleHadoopFileSystem") &&
-				fs.getScheme().startsWith("file")) {
+			fs.getScheme().startsWith("file")) {
 			LOG.warn("The file system scheme is '" + fs.getScheme() + "'. This indicates that the "
-					+ "specified Hadoop configuration path is wrong and the system is using the default Hadoop configuration values."
-					+ "The Flink YARN client needs to store its files in a distributed file system");
+				+ "specified Hadoop configuration path is wrong and the system is using the default Hadoop configuration values."
+				+ "The Flink YARN client needs to store its files in a distributed file system");
 		}
-
 
 		ApplicationSubmissionContext appContext = yarnApplication.getApplicationSubmissionContext();
 		Set<File> systemShipFiles = new HashSet<>(shipFiles.size());
@@ -923,7 +935,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 				File fp = File.createTempFile(appId.toString(), null);
 				fp.deleteOnExit();
 				try (FileOutputStream output = new FileOutputStream(fp);
-					ObjectOutputStream obOutput = new ObjectOutputStream(output);){
+					 ObjectOutputStream obOutput = new ObjectOutputStream(output);){
 					obOutput.writeObject(jobGraph);
 				}
 
@@ -1124,9 +1136,9 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		// print the application id for user to cancel themselves.
 		if (isDetachedMode()) {
 			LOG.info("The Flink YARN client has been started in detached mode. In order to stop " +
-					"Flink on YARN, use the following command or a YARN web interface to stop " +
-					"it:\nyarn application -kill " + appId + "\nPlease also note that the " +
-					"temporary files of the YARN session in the home directory will not be removed.");
+				"Flink on YARN, use the following command or a YARN web interface to stop " +
+				"it:\nyarn application -kill " + appId + "\nPlease also note that the " +
+				"temporary files of the YARN session in the home directory will not be removed.");
 		}
 		// since deployment was successful, remove the hook
 		ShutdownHookUtil.removeShutdownHook(deploymentFailureHook, getClass().getSimpleName(), LOG);
@@ -1161,13 +1173,13 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	 * @return the remote path to the uploaded resource
 	 */
 	private static Path setupSingleLocalResource(
-			String key,
-			FileSystem fs,
-			ApplicationId appId,
-			Path localSrcPath,
-			Map<String, LocalResource> localResources,
-			Path targetHomeDir,
-			String relativeTargetPath) throws IOException, URISyntaxException {
+		String key,
+		FileSystem fs,
+		ApplicationId appId,
+		Path localSrcPath,
+		Map<String, LocalResource> localResources,
+		Path targetHomeDir,
+		String relativeTargetPath) throws IOException, URISyntaxException {
 
 		Tuple2<Path, LocalResource> resource = Utils.setupLocalResource(
 			fs,
@@ -1204,31 +1216,31 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 
 	//todo dynamic load from hdfs extend by martin.dong
 	static void walkFileTree(FileStatus fileStatus,
-						  FileSystem fs,
-						  ApplicationId appId,
-						  List<Path> remotePaths,
-						  Map<String,LocalResource> localResources,
-						  Path targetHomeDir,
-						  List<String> classPaths,
-						  StringBuilder envShipFileList) throws IOException,URISyntaxException{
+							 FileSystem fs,
+							 ApplicationId appId,
+							 List<Path> remotePaths,
+							 Map<String,LocalResource> localResources,
+							 Path targetHomeDir,
+							 List<String> classPaths,
+							 StringBuilder envShipFileList) throws IOException,URISyntaxException{
 
 		if(fileStatus.isDirectory()) {
 			FileStatus[] fileStatusList = fs.listStatus(fileStatus.getPath());
 			for (FileStatus status:fileStatusList){
-                walkFileTree(status,fs,appId,remotePaths,localResources,targetHomeDir,classPaths,envShipFileList);
+				walkFileTree(status,fs,appId,remotePaths,localResources,targetHomeDir,classPaths,envShipFileList);
 			}
 		} else {
 			Path remotePath = setupSingleRemoteResource(
-					fileStatus.getPath().getName(),
-					fs,
-					appId,
-					fileStatus.getPath(),
-					localResources,
-					targetHomeDir,
-					"");
+				fileStatus.getPath().getName(),
+				fs,
+				appId,
+				fileStatus.getPath(),
+				localResources,
+				targetHomeDir,
+				"");
 			remotePaths.add(remotePath);
 			envShipFileList.append(fileStatus.getPath().getName()).append("=")
-					.append(remotePath).append(",");
+				.append(remotePath).append(",");
 			classPaths.add(fileStatus.getPath().getName());
 		}
 	}
@@ -1248,7 +1260,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 			if(fs.isDirectory(extendPath)){
 				FileStatus[] fileStatus=fs.listStatus(extendPath);
 				for(FileStatus status:fileStatus){
-                    walkFileTree(status,fs,appId,remotePaths,localResources,targetHomeDir,classPaths,envShipFileList);
+					walkFileTree(status,fs,appId,remotePaths,localResources,targetHomeDir,classPaths,envShipFileList);
 				}
 			}else{
 				Path remotePath=setupSingleRemoteResource(
@@ -1291,13 +1303,13 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	 * @return list of class paths with the the proper resource keys from the registration
 	 */
 	static List<String> uploadAndRegisterFiles(
-			Collection<File> shipFiles,
-			FileSystem fs,
-			Path targetHomeDir,
-			ApplicationId appId,
-			List<Path> remotePaths,
-			Map<String, LocalResource> localResources,
-			StringBuilder envShipFileList) throws IOException, URISyntaxException {
+		Collection<File> shipFiles,
+		FileSystem fs,
+		Path targetHomeDir,
+		ApplicationId appId,
+		List<Path> remotePaths,
+		Map<String, LocalResource> localResources,
+		StringBuilder envShipFileList) throws IOException, URISyntaxException {
 
 		final List<String> classPaths = new ArrayList<>(2 + shipFiles.size());
 		for (File shipFile : shipFiles) {
@@ -1312,7 +1324,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 						throws IOException {
 						String fileName = file.getFileName().toString();
 						if (!(fileName.startsWith("flink-dist") &&
-								fileName.endsWith("jar"))) {
+							fileName.endsWith("jar"))) {
 
 							java.nio.file.Path relativePath = parentPath.relativize(file);
 
@@ -1607,8 +1619,8 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		}
 
 		public void setAttemptFailuresValidityInterval(
-				ApplicationSubmissionContext appContext,
-				long validityInterval) throws InvocationTargetException, IllegalAccessException {
+			ApplicationSubmissionContext appContext,
+			long validityInterval) throws InvocationTargetException, IllegalAccessException {
 			if (attemptFailuresValidityIntervalMethod != null) {
 				LOG.debug("Calling method {} of {}.",
 					attemptFailuresValidityIntervalMethod.getName(),
@@ -1699,11 +1711,11 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	}
 
 	protected ContainerLaunchContext setupApplicationMasterContainer(
-			String yarnClusterEntrypoint,
-			boolean hasLogback,
-			boolean hasLog4j,
-			boolean hasKrb5,
-			int jobManagerMemoryMb) {
+		String yarnClusterEntrypoint,
+		boolean hasLogback,
+		boolean hasLog4j,
+		boolean hasKrb5,
+		int jobManagerMemoryMb) {
 		// ------------------ Prepare Application Master Container  ------------------------------
 
 		// respect custom JVM options in the YAML file
@@ -1744,7 +1756,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		startCommandValues.put("class", yarnClusterEntrypoint);
 		startCommandValues.put("redirects",
 			"1> " + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/jobmanager.out " +
-			"2> " + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/jobmanager.err");
+				"2> " + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/jobmanager.err");
 		startCommandValues.put("args", "");
 
 		final String commandTemplate = flinkConfiguration
@@ -1777,11 +1789,11 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	 * Creates a YarnClusterClient; may be overriden in tests.
 	 */
 	protected abstract ClusterClient<ApplicationId> createYarnClusterClient(
-			AbstractYarnClusterDescriptor descriptor,
-			int numberTaskManagers,
-			int slotsPerTaskManager,
-			ApplicationReport report,
-			org.apache.flink.configuration.Configuration flinkConfiguration,
-			boolean perJobCluster) throws Exception;
+		AbstractYarnClusterDescriptor descriptor,
+		int numberTaskManagers,
+		int slotsPerTaskManager,
+		ApplicationReport report,
+		org.apache.flink.configuration.Configuration flinkConfiguration,
+		boolean perJobCluster) throws Exception;
 }
 
