@@ -767,6 +767,9 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 			String extendLibPathString = configuration.getString("flink.hdfs.extend.lib.path", "");
 			if (!"".equals(extendLibPathString)) {
 				extendFiles.addAll(Arrays.stream(extendLibPathString.split(",")).map(Path::new).collect(Collectors.toList()));
+				LOG.info("flink hdfs extend lib path: {} size: {}",extendLibPathString,extendFiles.size());
+			}else{
+				LOG.info("flink hdfs extend lib path is empty :{}",configuration);
 			}
 		} catch (Exception e){
 			throw new RuntimeException(e);
@@ -1159,7 +1162,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 	/**
 	 * Uploads and registers a single resource and adds it to <tt>localResources</tt>.
 	 *
-	 * @param key
+	 * @param kec
 	 * 		the key to add the resource under
 	 * @param fs
 	 * 		the remote file system to upload to
@@ -1230,6 +1233,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 				walkFileTree(status,fs,appId,remotePaths,localResources,targetHomeDir,classPaths,envShipFileList);
 			}
 		} else {
+			LOG.info("copy and register file: {}",fileStatus.getPath());
 			Path remotePath = setupSingleRemoteResource(
 				fileStatus.getPath().getName(),
 				fs,
@@ -1257,12 +1261,14 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 
 		final List<String> classPaths = new ArrayList<>(2 + remotePaths.size());
 		for(Path extendPath:extendPaths){
+			LOG.info("copy and register path: {}",extendPath);
 			if(fs.isDirectory(extendPath)){
 				FileStatus[] fileStatus=fs.listStatus(extendPath);
 				for(FileStatus status:fileStatus){
 					walkFileTree(status,fs,appId,remotePaths,localResources,targetHomeDir,classPaths,envShipFileList);
 				}
 			}else{
+				LOG.info("copy and register file: {}",extendPath);
 				Path remotePath=setupSingleRemoteResource(
 					extendPath.getName(),
 					fs,
