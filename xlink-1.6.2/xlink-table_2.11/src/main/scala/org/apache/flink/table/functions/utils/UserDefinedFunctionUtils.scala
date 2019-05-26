@@ -20,7 +20,7 @@
 package org.apache.flink.table.functions.utils
 
 import java.util
-import java.lang.{Integer => JInt, Long => JLong}
+import java.lang.{Integer ⇒ JInt, Long ⇒ JLong}
 import java.lang.reflect.{Method, Modifier}
 import java.sql.{Date, Time, Timestamp}
 
@@ -133,13 +133,17 @@ object UserDefinedFunctionUtils {
 
   //todo
   def computeMatchDistance(component:Class[_],expected:Class[_]):Int={
-    if(expected.getInterfaces.contains(component)){
-      1
-    }else {
-      if (component == expected) {
-        0
-      }else{
-        1+computeMatchDistance(component,expected.getSuperclass)
+    if (expected == null) {
+      99
+    } else {
+      if (expected.getInterfaces.contains(component)) {
+        1
+      } else {
+        if (component == expected) {
+          0
+        } else {
+          1 + computeMatchDistance(component, expected.getSuperclass)
+        }
       }
     }
   }
