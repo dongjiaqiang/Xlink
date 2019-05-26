@@ -35,35 +35,25 @@
 
 ### 特性
 
-* **支持在Janino编译Flink SQL生成的Java源代码时传递一个能够加载由cglib动态生成的类的字节码类加载器**
+* **解决自定义UDF匹配多个eval方法歧义问题**
 
 
 ### 源码改动说明
 
-* [在Compiler接口中将Configuration传递下来](https://github.com/dongjiaqiang/Xlink/blob/master/xlink-1.6.2/xlink-table_2.11/src/main/scala/org/apache/flink/table/codegen/Compiler.scala)
-* [xlink包中存放用于支持加载器实现的代码](https://github.com/dongjiaqiang/Xlink/tree/master/xlink-1.6.2/xlink-table_2.11/src/main/scala/org/apache/flink/table/xlink)
+* [在UserDefinedFunctionUtils中计算最佳匹配的eval方法](https://github.com/dongjiaqiang/Xlink/blob/master/xlink-1.6.2/xlink-table_2.11/src/main/scala/org/apache/flink/table/functions/utils/UserDefinedFunctionUtils.scala)
 
 
-### 参数说明
+### 改动说明
 
-**为支持创建能够加载由cglib动态生成的类的字节码类加载器 需要通过配置将动态类的class对象添加进来**
-
-* **键名字为flink.dsl.stream.dynamic.udfs.info**
-
-* **值为一个JSON字符串**
-
-```json
-{
-	"org.apache.flink.table.xlink.UserUdfFunction$$EnhancerByCGLIB$$63728015": {
-		"data": "yv66vgAAAC4BpgEAR29yZy9hcGFjaGUvZmxaW9uQ29udGV4dDspVgEABG9wZW4MAi9jZ2xpYi9wcm94eS9DYWxsYmFjazspTGphdmEvbGFuZy9PYmplY3Q7AQAiamF2YS9sYW5nL0lsbGVnYWxBcmd1bWVudEV4Y2VwdGlBoARgAmAAAAGgBUACQAAAAaAFUAJgAAABoAYQAkAAAAGgBiACYAAAAaAG4AJAAAABoAbwAmAAAAGgB6ACQAAAAaAHsAJgAAABoAhysqEwFQEwFZEwF5uAFLswEFV7GxAAAAAAAQACk",
-		"dependency": {
-			"net.sf.cglib.empty.Object$$InterfaceMakerByCGLIB$$16d04d3d": "yv66vgAAAC4ACQEAOm5ldC9zZi9jZ2xpYi9lbXB0eS9PYmplY3QkJEludGVyZmFjZU1ha2VyQnlDR0xJQiQkMTZkMDRkM2QHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQALPGdlbmVyYXRlZD4BAARldmFsAQAEKEkpSgEAClNvdXJjZUZpbGUCAQACAAQAAAAAAAEEAQAGAAcAAAABAAgAAAACAAU",
-			"net.sf.cglib.empty.Object$$InterfaceMakerByCGLIB$$36902638": "yv66vgAAAC4ACQEAOm5ldC9zZi9jZ2xpYi9lbXB0eS9PYmplY3QkJEludGVyZmFjZU1ha2VyQnlDR0xJQiQkMzY5MDI2MzgHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQALPGdlbmVyYXRlZD4BAARldmFsAQAUKClMamF2YS9sYW5nL1N0cmluZzsBAApTb3VyY2VGaWxlAgEAAgAEAAAAAAABBAEABgAHAAAAAQAIAAAAAgAF",
-			"net.sf.cglib.empty.Object$$InterfaceMakerByCGLIB$$7b9a4292": "yv66vgAAAC4ACQEAOm5ldC9zZi9jZ2xpYi9lbXB0eS9PYmplY3QkJEludGVyZmFjZU1ha2VyQnlDR0xJQiQkN2I5YTQyOTIHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQALPGdlbmVyYXRlZD4BAARldmFsAQA4KExqYXZhL2xhbmcvU3RyaW5nO0xqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL1N0cmluZzsBAApTb3VyY2VGaWxlAgEAAgAEAAAAAAABBAEABgAHAAAAAQAIAAAAAgAF",
-			"net.sf.cglib.empty.Object$$InterfaceMakerByCGLIB$$1d2adfbe": "yv66vgAAAC4ACQEAOm5ldC9zZi9jZ2xpYi9lbXB0eS9PYmplY3QkJEludGVyZmFjZU1ha2VyQnlDR0xJQiQkMWQyYWRmYmUHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQALPGdlbmVyYXRlZD4BAARldmFsAQAHKFtJW0YpRgEAClNvdXJjZUZpbGUCAQACAAQAAAAAAAEEAQAGAAcAAAABAAgAAAACAAU",
-			"net.sf.cglib.empty.Object$$InterfaceMakerByCGLIB$$49ec71f8": "yv66vgAAAC4ACQEAOm5ldC9zZi9jZ2xpYi9lbXB0eS9PYmplY3QkJEludGVyZmFjZU1ha2VyQnlDR0xJQiQkNDllYzcxZjgHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQALPGdlbmVyYXRlZD4BAARldmFsAQAFKEpEKUQBAApTb3VyY2VGaWxlAgEAAgAEAAAAAAABBAEABgAHAAAAAQAIAAAAAgAF"
-		}
-	}
+自定义如下UDF 重载eval方法 当SQL语句匹配到Array[Int]参数的eval方法时 必然也会匹配Array[Any]参数 在原生Flink实现中会报错 可以实现为匹配一个最佳的方法
+```scala
+class  ArraySize extends ScalarFunction{
+   def eval(array: Array[Int]):Int = {
+        array.length
+      }
+   def eval(array: Array[Any]):Int = {
+        array.length
+      }    
 }
 ```
 
