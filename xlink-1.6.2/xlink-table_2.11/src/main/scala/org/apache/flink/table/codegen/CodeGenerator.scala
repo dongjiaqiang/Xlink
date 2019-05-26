@@ -109,39 +109,39 @@ abstract class CodeGenerator(
 
   // set of member statements that will be added only once
   // we use a LinkedHashSet to keep the insertion order
-  val reusableMemberStatements: mutable.LinkedHashSet[String] =
+  protected val reusableMemberStatements: mutable.LinkedHashSet[String] =
     mutable.LinkedHashSet[String]()
 
   // set of constructor statements that will be added only once
   // we use a LinkedHashSet to keep the insertion order
-  val reusableInitStatements: mutable.LinkedHashSet[String] =
+  protected val reusableInitStatements: mutable.LinkedHashSet[String] =
     mutable.LinkedHashSet[String]()
 
   // set of open statements for RichFunction that will be added only once
   // we use a LinkedHashSet to keep the insertion order
-  val reusableOpenStatements: mutable.LinkedHashSet[String] =
+  protected val reusableOpenStatements: mutable.LinkedHashSet[String] =
     mutable.LinkedHashSet[String]()
 
   // set of close statements for RichFunction that will be added only once
   // we use a LinkedHashSet to keep the insertion order
-  val reusableCloseStatements: mutable.LinkedHashSet[String] =
+  protected val reusableCloseStatements: mutable.LinkedHashSet[String] =
     mutable.LinkedHashSet[String]()
 
   // set of statements that will be added only once per record;
   // code should only update member variables because local variables are not accessible if
   // the code needs to be split;
   // we use a LinkedHashSet to keep the insertion order
-  val reusablePerRecordStatements: mutable.LinkedHashSet[String] =
+  protected val reusablePerRecordStatements: mutable.LinkedHashSet[String] =
     mutable.LinkedHashSet[String]()
 
   // map of initial input unboxing expressions that will be added only once
   // (inputTerm, index) -> expr
-  val reusableInputUnboxingExprs: mutable.Map[(String, Int), GeneratedExpression] =
+  protected val reusableInputUnboxingExprs: mutable.Map[(String, Int), GeneratedExpression] =
     mutable.Map[(String, Int), GeneratedExpression]()
 
   // set of constructor statements that will be added only once
   // we use a LinkedHashSet to keep the insertion order
-  val reusableConstructorStatements: mutable.LinkedHashSet[(String, String)] =
+  protected val reusableConstructorStatements: mutable.LinkedHashSet[(String, String)] =
     mutable.LinkedHashSet[(String, String)]()
 
   /**
@@ -1059,13 +1059,13 @@ abstract class CodeGenerator(
 
         // declaration
         val resultTypeTerm = primitiveTypeTermForTypeInfo(expr.resultType)
-        if (nullCheck && !expr.nullTerm.equals(NEVER_NULL) && !expr.nullTerm.equals(ALWAYS_NULL)) {
+        if (nullCheck) {
           reusableMemberStatements.add(s"private boolean ${expr.nullTerm};")
         }
         reusableMemberStatements.add(s"private $resultTypeTerm ${expr.resultTerm};")
 
         // assignment
-        if (nullCheck && !expr.nullTerm.equals(NEVER_NULL) && !expr.nullTerm.equals(ALWAYS_NULL)) {
+        if (nullCheck) {
           reusablePerRecordStatements.add(s"this.${expr.nullTerm} = ${expr.nullTerm};")
         }
         reusablePerRecordStatements.add(s"this.${expr.resultTerm} = ${expr.resultTerm};")

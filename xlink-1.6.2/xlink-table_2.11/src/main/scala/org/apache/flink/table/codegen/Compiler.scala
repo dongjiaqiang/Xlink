@@ -21,31 +21,14 @@ package org.apache.flink.table.codegen
 import org.apache.flink.api.common.InvalidProgramException
 import org.codehaus.commons.compiler.CompileException
 import org.codehaus.janino.SimpleCompiler
-import org.apache.flink.configuration.Configuration
-import org.apache.flink.table.xlink.CglibEnhancerClassLoader
 
 trait Compiler[T] {
 
-  //todo
-  //修改compile方法把config传递下来
   @throws(classOf[CompileException])
-  def compile(cl: ClassLoader, name: String, code: String,configuration:Configuration): Class[T] = {
+  def compile(cl: ClassLoader, name: String, code: String): Class[T] = {
     require(cl != null, "Classloader must not be null.")
-
     val compiler = new SimpleCompiler()
-
-    //获取动态加载的UDF信息
-    val dynamicUdfsInfo=if(configuration==null) {
-      ""
-    } else {
-      configuration.getString("flink.dsl.stream.dynamic.udfs.info","")
-    }
-
-    if(dynamicUdfsInfo=="") {
-      compiler.setParentClassLoader(cl)
-    }else{
-      compiler.setParentClassLoader(new CglibEnhancerClassLoader(cl,dynamicUdfsInfo))
-    }
+    compiler.setParentClassLoader(cl)
     try {
       compiler.cook(code)
     } catch {

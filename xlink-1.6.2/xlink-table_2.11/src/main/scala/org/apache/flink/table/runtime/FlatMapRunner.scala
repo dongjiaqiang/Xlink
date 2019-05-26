@@ -41,7 +41,7 @@ class FlatMapRunner(
 
   override def open(parameters: Configuration): Unit = {
     LOG.debug(s"Compiling FlatMapFunction: $name \n\n Code:\n$code")
-    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code,parameters)
+    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code)
     LOG.debug("Instantiating FlatMapFunction.")
     function = clazz.newInstance()
     FunctionUtils.setFunctionRuntimeContext(function, getRuntimeContext)

@@ -18,7 +18,6 @@
 
 package org.apache.flink.table.runtime
 
-import org.apache.flink.api.common.functions.util.FunctionUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
 import org.apache.flink.configuration.Configuration
@@ -47,11 +46,9 @@ class CRowOutputProcessRunner(
 
   override def open(parameters: Configuration): Unit = {
     LOG.debug(s"Compiling ProcessFunction: $name \n\n Code:\n$code")
-    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code,parameters)
+    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code)
     LOG.debug("Instantiating ProcessFunction.")
     function = clazz.newInstance()
-    FunctionUtils.setFunctionRuntimeContext(function, getRuntimeContext)
-    FunctionUtils.openFunction(function, parameters)
 
     this.cRowWrapper = new CRowWrappingCollector()
     this.cRowWrapper.setChange(true)
@@ -71,8 +68,4 @@ class CRowOutputProcessRunner(
   }
 
   override def getProducedType: TypeInformation[CRow] = returnType
-
-  override def close(): Unit = {
-    FunctionUtils.closeFunction(function)
-  }
 }

@@ -43,12 +43,12 @@ class CorrelateFlatMapRunner[IN, OUT](
 
   override def open(parameters: Configuration): Unit = {
     LOG.debug(s"Compiling TableFunctionCollector: $collectorName \n\n Code:\n$collectorCode")
-    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, collectorName, collectorCode,parameters)
+    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, collectorName, collectorCode)
     LOG.debug("Instantiating TableFunctionCollector.")
     collector = clazz.newInstance().asInstanceOf[TableFunctionCollector[_]]
 
     LOG.debug(s"Compiling FlatMapFunction: $flatMapName \n\n Code:\n$flatMapCode")
-    val flatMapClazz = compile(getRuntimeContext.getUserCodeClassLoader, flatMapName, flatMapCode,parameters)
+    val flatMapClazz = compile(getRuntimeContext.getUserCodeClassLoader, flatMapName, flatMapCode)
     val constructor = flatMapClazz.getConstructor(classOf[TableFunctionCollector[_]])
     LOG.debug("Instantiating FlatMapFunction.")
     function = constructor.newInstance(collector).asInstanceOf[FlatMapFunction[IN, OUT]]

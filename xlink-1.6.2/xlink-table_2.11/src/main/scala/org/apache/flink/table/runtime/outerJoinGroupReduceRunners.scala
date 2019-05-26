@@ -19,7 +19,6 @@ package org.apache.flink.table.runtime
 
 import java.lang.Iterable
 
-import org.apache.flink.api.common.functions.util.FunctionUtils
 import org.apache.flink.api.common.functions.{JoinFunction, RichGroupReduceFunction}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.configuration.Configuration
@@ -39,15 +38,9 @@ abstract class OuterJoinGroupReduceRunner(
 
   override def open(config: Configuration) {
     LOG.debug(s"Compiling JoinFunction: $name \n\n Code:\n$code")
-    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code,config)
+    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code)
     LOG.debug("Instantiating JoinFunction.")
     function = clazz.newInstance()
-    FunctionUtils.setFunctionRuntimeContext(function, getRuntimeContext)
-    FunctionUtils.openFunction(function, config)
-  }
-
-  override def close(): Unit = {
-    FunctionUtils.closeFunction(function)
   }
 }
 

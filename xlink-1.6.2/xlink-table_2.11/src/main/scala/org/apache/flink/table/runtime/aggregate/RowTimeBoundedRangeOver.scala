@@ -75,7 +75,7 @@ class RowTimeBoundedRangeOver(
     val clazz = compile(
       getRuntimeContext.getUserCodeClassLoader,
       genAggregations.name,
-      genAggregations.code,config)
+      genAggregations.code)
     LOG.debug("Instantiating AggregateHelper.")
     function = clazz.newInstance()
     function.open(getRuntimeContext)

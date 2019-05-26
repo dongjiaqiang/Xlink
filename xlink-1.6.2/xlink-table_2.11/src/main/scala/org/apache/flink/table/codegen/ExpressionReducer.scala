@@ -104,7 +104,7 @@ class ExpressionReducer(config: TableConfig)
     val clazz = compile(
       Thread.currentThread().getContextClassLoader,
       generatedFunction.name,
-      generatedFunction.code,null)
+      generatedFunction.code)
     val function = clazz.newInstance()
 
     // execute

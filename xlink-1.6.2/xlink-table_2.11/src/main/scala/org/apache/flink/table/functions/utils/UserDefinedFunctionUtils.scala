@@ -127,6 +127,49 @@ object UserDefinedFunctionUtils {
   }
 
   /**
+    *计算最匹配的执行方法 通过计算各个参数间的距离来判定
+    *
+    */
+
+  //todo
+  def computeMatchDistance(component:Class[_],expected:Class[_]):Int={
+    if(expected.getInterfaces.contains(component)){
+      1
+    }else {
+      if (component == expected) {
+        0
+      }else{
+        1+computeMatchDistance(component,expected.getSuperclass)
+      }
+    }
+  }
+
+  //todo
+  def computeMatchDistance(method:Method,methodSignature:Array[Class[_]]):Int={
+      method.getParameterTypes.zip(methodSignature).map{
+        case (component,expected)⇒
+            if(component.isAssignableFrom(expected)){
+              computeMatchDistance(component,expected)
+            }else if(component.isArray && expected.isArray){
+              computeMatchDistance(component.getComponentType,expected.getComponentType)
+            }else{
+              99
+            }
+      }.sum
+  }
+
+  //todo
+  def findBestMethod(methods:Array[Method],methodSignature:Array[Class[_]]):Array[Method]={
+      if(methods.length<=1){
+         methods
+      }else{
+         Array(methods(methods.zipWithIndex.map{
+           case (method,index)⇒ (index,computeMatchDistance(method,methodSignature))
+         }.minBy(_._2)._1))
+      }
+  }
+
+  /**
     * Returns user defined method matching the given name and signature.
     *
     * @param function        function instance
@@ -167,10 +210,12 @@ object UserDefinedFunctionUtils {
 
     // if there is a fixed method, compiler will call this method preferentially
     val fixedMethodsCount = filtered.count(!_.isVarArgs)
-    val found = filtered.filter { cur =>
+
+    //todo 获取最小距离的方法
+    val found = findBestMethod(filtered.filter { cur =>
       fixedMethodsCount > 0 && !cur.isVarArgs ||
       fixedMethodsCount == 0 && cur.isVarArgs
-    }
+    },methodSignature)
 
     // check if there is a Scala varargs annotation
     if (found.isEmpty &&
@@ -182,7 +227,6 @@ object UserDefinedFunctionUtils {
           case (clazz, i) if i == signatures.length - 1 =>
             clazz.getName.equals("scala.collection.Seq")
         }
-
       }) {
       throw new ValidationException(
         s"Scala-style variable arguments in '$methodName' methods are not supported. Please " +

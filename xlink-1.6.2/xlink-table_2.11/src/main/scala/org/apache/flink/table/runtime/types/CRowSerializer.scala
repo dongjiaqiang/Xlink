@@ -81,7 +81,7 @@ class CRowSerializer(val rowSerializer: TypeSerializer[Row]) extends TypeSeriali
   // --------------------------------------------------------------------------------------------
 
   override def snapshotConfiguration(): TypeSerializerConfigSnapshot = {
-    new CRowSerializer.CRowSerializerConfigSnapshot(Array(rowSerializer))
+    new CRowSerializer.CRowSerializerConfigSnapshot(rowSerializer)
   }
 
   override def ensureCompatibility(
@@ -115,12 +115,8 @@ class CRowSerializer(val rowSerializer: TypeSerializer[Row]) extends TypeSeriali
 
 object CRowSerializer {
 
-  class CRowSerializerConfigSnapshot(rowSerializers: Array[TypeSerializer[Row]])
+  class CRowSerializerConfigSnapshot(rowSerializers: TypeSerializer[Row]*)
     extends CompositeTypeSerializerConfigSnapshot(rowSerializers: _*) {
-
-    def this() {
-      this(Array.empty)
-    }
 
     override def getVersion: Int = CRowSerializerConfigSnapshot.VERSION
   }

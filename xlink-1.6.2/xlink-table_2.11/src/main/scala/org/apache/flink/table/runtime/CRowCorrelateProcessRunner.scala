@@ -49,13 +49,13 @@ class CRowCorrelateProcessRunner(
 
   override def open(parameters: Configuration): Unit = {
     LOG.debug(s"Compiling TableFunctionCollector: $collectorName \n\n Code:\n$collectorCode")
-    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, collectorName, collectorCode,parameters)
+    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, collectorName, collectorCode)
     LOG.debug("Instantiating TableFunctionCollector.")
     collector = clazz.newInstance().asInstanceOf[TableFunctionCollector[_]]
     this.cRowWrapper = new CRowWrappingCollector()
 
     LOG.debug(s"Compiling ProcessFunction: $processName \n\n Code:\n$processCode")
-    val processClazz = compile(getRuntimeContext.getUserCodeClassLoader, processName, processCode,parameters)
+    val processClazz = compile(getRuntimeContext.getUserCodeClassLoader, processName, processCode)
     val constructor = processClazz.getConstructor(classOf[TableFunctionCollector[_]])
     LOG.debug("Instantiating ProcessFunction.")
     function = constructor.newInstance(collector).asInstanceOf[ProcessFunction[Row, Row]]

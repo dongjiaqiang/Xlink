@@ -61,7 +61,7 @@ class GroupAggProcessFunction(
     val clazz = compile(
       getRuntimeContext.getUserCodeClassLoader,
       genAggregations.name,
-      genAggregations.code,config)
+      genAggregations.code)
     LOG.debug("Instantiating AggregateHelper.")
     function = clazz.newInstance()
     function.open(getRuntimeContext)
@@ -95,12 +95,6 @@ class GroupAggProcessFunction(
     var inputCnt = cntState.value()
 
     if (null == accumulators) {
-      // don't create a new accumulator for unknown retractions
-      // e.g. retractions that come in right after state clean up
-      if (!inputC.change) {
-        return
-      }
-      // first accumulate message
       firstRow = true
       accumulators = function.createAccumulators()
     } else {

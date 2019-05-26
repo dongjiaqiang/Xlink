@@ -20,7 +20,6 @@ package org.apache.flink.table.runtime
 
 import java.lang.{Boolean => JBool}
 
-import org.apache.flink.api.common.functions.util.FunctionUtils
 import org.apache.flink.api.common.functions.{JoinFunction, RichFlatJoinFunction}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
@@ -43,18 +42,12 @@ abstract class OuterJoinRunner(
 
   override def open(parameters: Configuration): Unit = {
     LOG.debug(s"Compiling FlatJoinFunction: $name \n\n Code:\n$code")
-    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code,parameters)
+    val clazz = compile(getRuntimeContext.getUserCodeClassLoader, name, code)
     LOG.debug("Instantiating FlatJoinFunction.")
     function = clazz.newInstance()
-    FunctionUtils.setFunctionRuntimeContext(function, getRuntimeContext)
-    FunctionUtils.openFunction(function, parameters)
   }
 
   override def getProducedType: TypeInformation[Row] = returnType
-
-  override def close(): Unit = {
-    FunctionUtils.closeFunction(function)
-  }
 }
 
 /**

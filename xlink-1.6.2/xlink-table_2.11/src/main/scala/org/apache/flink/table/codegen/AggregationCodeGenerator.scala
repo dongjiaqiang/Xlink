@@ -143,21 +143,6 @@ class AggregationCodeGenerator(
       fields.mkString(", ")
     }
 
-    val parametersCodeForDistinctMerge = aggFields.map { inFields =>
-      val fields = inFields.filter(_ > -1).zipWithIndex.map { case (f, i) =>
-        // index to constant
-        if (f >= physicalInputTypes.length) {
-          constantFields(f - physicalInputTypes.length)
-        }
-        // index to input field
-        else {
-          s"(${CodeGenUtils.boxedTypeTermForTypeInfo(physicalInputTypes(f))}) k.getField($i)"
-        }
-      }
-
-      fields.mkString(", ")
-    }
-
     // get method signatures
     val classes = UserDefinedFunctionUtils.typeInfoToClass(physicalInputTypes)
     val constantClasses = UserDefinedFunctionUtils.typeInfoToClass(constantTypes)
@@ -345,7 +330,7 @@ class AggregationCodeGenerator(
         s"""
            |    $descClassQualifier $descFieldTerm = ($descClassQualifier)
            |      org.apache.flink.util.InstantiationUtil.deserializeObject(
-           |      ${classOf[Base64].getCanonicalName}.decodeBase64("$serializedData"),
+           |      org.apache.commons.codec.binary.Base64.decodeBase64("$serializedData"),
            |      $contextTerm.getUserCodeClassLoader());
            |""".stripMargin
       val createDataView = if (dataViewField.getType == classOf[MapView[_, _]]) {
@@ -658,7 +643,7 @@ class AggregationCodeGenerator(
                |          (${classOf[Row].getCanonicalName}) entry.getKey();
                |      Long v = (Long) entry.getValue();
                |      if (aDistinctAcc$i.add(k, v)) {
-               |        ${aggs(i)}.accumulate(aAcc$i, ${parametersCodeForDistinctMerge(i)});
+               |        ${aggs(i)}.accumulate(aAcc$i, k);
                |      }
                |    }
                |    a.setField($i, aDistinctAcc$i);

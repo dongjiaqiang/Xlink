@@ -72,7 +72,7 @@ class AggregateAggFunction(genAggregations: GeneratedAggregationsFunction)
     val clazz = compile(
       Thread.currentThread().getContextClassLoader,
       genAggregations.name,
-      genAggregations.code,null)
+      genAggregations.code)
     LOG.debug("Instantiating AggregateHelper.")
     function = clazz.newInstance()
   }
